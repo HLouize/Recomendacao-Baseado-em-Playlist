@@ -1,0 +1,52 @@
+# 🚀 Guia de Contribuição — Motor de Recomendação (LP2)
+
+Bem-vindo ao repositório do projeto! Para garantir a qualidade do código, evitar conflitos de integração (*merge conflicts*) e manter o histórico limpo, **todos os membros da equipe devem seguir rigorosamente este fluxo de trabalho.**
+
+---
+
+## 📌 1. Estrutura de Branches (Git Flow)
+
+Trabalhamos com o modelo **Git Flow** simplificado:
+
+* **`main`**: Código em produção, estável e pronto para entrega final.
+* **`develop`**: Branch principal de integração. **Todas as features nascem e retornam para a `develop`.**
+* **`feature/...`**: Branches temporárias para o desenvolvimento de tarefas específicas.
+
+---
+
+## 🗺️ 2. Mapeamento de Issues e Branches
+
+Antes de iniciar qualquer tarefa, verifique a Issue correspondente no **GitHub Projects** e crie a branch correspondente a partir da **`develop`**:
+
+| Issue | Branch de Feature | Descrição |
+| :--- | :--- | :--- |
+| **#1** | `feature/1-domain-metadata` | Metadados e tags nas classes `Faixa`, `Episodio` e `Audiobook`. |
+| **#2** | `feature/2-strategy-pattern` | Interfaces e classes do padrão Strategy (`PlaylistSimilarity`, `PlaylistAutoComplete`). |
+| **#3** | `feature/3-recommendation-filters` | Filtros de pós-processamento (`AntiRepetitionFilter`, `AdInsertionFilter`). |
+| **#4** | `feature/4-engine-and-exceptions` | Classe `RecommendationEngine` e exceções customizadas do sistema. |
+| **#5** | `feature/5-junit-tests` | Suíte de testes unitários automatizados com JUnit 5. |
+| **#6** | `feature/6-javadoc-docs` | Documentação Javadoc completa em todas as classes e interfaces. |
+
+---
+
+## 🔄 3. Passo a Passo do Desenvolvedor
+
+### **Passo 1: Selecionar e Atribuir a Issue**
+1. Acesse a aba **Issues** no GitHub.
+2. Atribua a tarefa a você (*Assignees* $\rightarrow$ *Assign to yourself*).
+3. Mova o cartão no **GitHub Projects** da coluna **Backlog** para **In Progress**.
+
+---
+
+### **Passo 2: Atualizar a `develop` e Criar a Branch**
+No terminal da sua máquina, garanta que seu ambiente local está 100% atualizado antes de começar:
+
+```bash
+# 1. Alterne para a branch de integração
+git checkout develop
+
+# 2. Baixe as alterações mais recentes da equipe
+git pull origin develop
+
+# 3. Crie e mude para a sua branch de feature (exemplo para a Issue 1)
+git checkout -b feature/1-domain-metadata
