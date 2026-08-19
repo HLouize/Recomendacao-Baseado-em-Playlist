@@ -44,7 +44,6 @@ public class Main {
 
         System.out.println("Tamanho da lista com propagandas: " + resultado.size());
         for (Reproduzivel item : resultado) {
-            // O Java vai chamar o toString/play dependendo da implementação, mas aqui vemos a ordem
             item.play();
         }
     }
