@@ -65,10 +65,10 @@ public class Player {
     }
 
     private void tocarItem(Usuario usuario, Reproduzivel item) {
-        if (usuario.getPlano() != null && usuario.getPlano().exibirPropaganda()) {
+        if (usuario.getPlano() != null && usuario.getPlano().equalsIgnoreCase("Gratuito")) {
             contadorPropaganda++;
             if (contadorPropaganda % 2 == 0) {
-                Propaganda ad = new Propaganda("Anuncio Patrocinado", 15, "Patrocinador Oficial");
+                Propaganda ad = new Propaganda("Anuncio Patrocinado", "15", "Patrocinador Oficial");
                 System.out.println("[ANUNCIO]: " + ad.getTitulo() + " (Patrocinado por: " + ad.getAnunciante() + ")");
                 pausa(1000);
             }
