@@ -65,16 +65,18 @@ public class Player {
     }
 
     private void tocarItem(Usuario usuario, Reproduzivel item) {
-        if (usuario.getPlano() != null && usuario.getPlano().equalsIgnoreCase("Gratuito")) {
+        if (usuario.getPlano() != null && usuario.getPlano().exibirPropaganda()) {
             contadorPropaganda++;
             if (contadorPropaganda % 2 == 0) {
-                Propaganda ad = new Propaganda("Anuncio Patrocinado", "15", "Patrocinador Oficial");
-                System.out.println("[ANUNCIO]: " + ad.getTitulo() + " (Patrocinado por: " + ad.getAnunciante() + ")");
+                Propaganda ad = new Propaganda("Anuncio Patrocinado", 15, "Patrocinador Oficial");
+                System.out.println("[ANUNCIO]: " + ad.getNome() + " (Patrocinado por: " + ad.getAnunciante() + ")");
                 pausa(1000);
             }
         }
 
-        System.out.println("Tocando: " + item.getTitulo());
+        if (item instanceof Midia m) {
+            System.out.println("Tocando: " + m.getNome());
+        }
         usuario.adicionarAoHistorico(item);
         pausa(1500);
     }
