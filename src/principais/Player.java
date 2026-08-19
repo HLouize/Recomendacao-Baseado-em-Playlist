@@ -1,117 +1,89 @@
 package principais;
 
-import classesDeMidia.Midia;
-import classesDeMidia.Propaganda;
-import classesDeMidia.Reproduzivel;
-import excecoes.CatalogoInsuficienteException;
-import excecoes.PlaylistVaziaException;
-import filtros.AdInsertionFilter;
-import filtros.AntiRepetitionFilter;
-import organizacao.Playlist;
-import recomendacao.PlaylistSimilarityStrategy;
-
 import java.util.List;
+import java.util.ArrayList;
+import classesDeMidia.*;
+import organizacao.Playlist;
 
 public class Player {
-    private boolean emReproducao;
-    private int contadorPropagandaAutoplay;
-
-    public Player() {
-        this.emReproducao = false;
-        this.contadorPropagandaAutoplay = 0;
-    }
+    private boolean emReproducao = true;
 
     public void iniciarReproducao(Usuario usuario, Playlist playlist, List<Midia> catalogoGlobal) {
-        if (playlist == null || playlist.getItens().isEmpty()) {
-            System.out.println("[AVISO] A playlist selecionada esta vazia!");
-            return;
-        }
+        System.out.println("\n--- REPRODUZINDO PLAYLIST: " + playlist.getNome() + " ---");
 
-        this.emReproducao = true;
-        System.out.println("\n[PLAY] Iniciando reproducao da playlist: " + playlist.getNome());
+        List<Reproduzivel> fila = new ArrayList<>(playlist.getItens());
+        int index = 0;
 
-        // 1. Aplica o filtro de anuncios original se for plano gratuito
-        Playlist playlistParaTocar = playlist;
-        if (usuario.getPlano() != null && usuario.getPlano().exibirPropaganda()) {
-            AdInsertionFilter adFilter = new AdInsertionFilter();
-            playlistParaTocar = adFilter.filtrar(playlist, usuario, catalogoGlobal);
-        }
+        // Limite de músicas automáticas (Autoplay vai recomendar umas 3 vezes e parar, como você pediu)
+        int limiteAutoplay = 3;
+        int musicasRecomendadasTocadas = 0;
 
-        // 2. Toca a playlist do usuario
-        for (Reproduzivel item : playlistParaTocar.getItens()) {
-            if (!emReproducao) break;
-            tocarItem(usuario, item);
-        }
+        while (index < fila.size() && emReproducao) {
+            Reproduzivel item = fila.get(index);
 
-        // 3. Autoplay (Recomendacao) baseada estritamente na ULTIMA musica original
-        if (emReproducao && !playlist.getItens().isEmpty()) {
-            System.out.println("\n[AUTOPLAY] A playlist acabou. Buscando recomendacoes baseadas na ultima musica...");
+            System.out.println("\n[ ♪ TOCANDO AGORA ]");
+            item.play();
 
-            // Pega a ultima musica da playlist original (ignorando os anuncios inseridos)
-            Reproduzivel ultimaMusica = playlist.getItens().get(playlist.getItens().size() - 1);
-            
-            // Cria uma playlist temporaria apenas com a ultima musica para forcar a tag (ex: Rock)
-            Playlist baseAutoplay = new Playlist("Base Autoplay");
-            baseAutoplay.adicionarItem(ultimaMusica);
+            if (item instanceof Midia) {
+                usuario.acessarMidia((Midia) item);
+            }
+            System.out.println("----------------------------------------");
+            index++;
 
-            try {
-                // Usa a estrategia de similaridade que avalia as Tags
-                RecommendationEngine engine = new RecommendationEngine(new PlaylistSimilarityStrategy());
-                engine.adicionarFiltro(new AntiRepetitionFilter());
+            // QUANDO CHEGAR NA ÚLTIMA MÚSICA DA FILA, ELE BUSCA A PRÓXIMA PELA TAG
+            if (index == fila.size() && emReproducao && musicasRecomendadasTocadas < limiteAutoplay) {
 
-                Playlist recomendadas = engine.gerarPlaylistRecomendada(
-                        "Autoplay Recomendado",
-                        baseAutoplay,
-                        usuario,
-                        catalogoGlobal,
-                        5
-                );
+                // Pega estritamente a última mídia que acabou de tocar
+                Reproduzivel ultimaTocada = fila.get(index - 1);
 
-                for (Reproduzivel item : recomendadas.getItens()) {
-                    if (!emReproducao) break;
-                    
-                    // Insercao manual de anuncio durante o Autoplay para plano gratuito
-                    if (usuario.getPlano() != null && usuario.getPlano().exibirPropaganda()) {
-                        contadorPropagandaAutoplay++;
-                        if (contadorPropagandaAutoplay % 2 != 0) {
-                            Propaganda ad = new Propaganda("Anuncio Premium", 15, "Patrocinador Autoplay");
-                            System.out.println("\n[ANUNCIO]: " + ad.getNome() + " - " + ad.getAnunciante());
-                            pausa(1500);
+                List<String> tagsDaUltima = new ArrayList<>();
+                if (ultimaTocada instanceof Faixa f) {
+                    tagsDaUltima = f.getTags();
+                }
+
+                if (!tagsDaUltima.isEmpty()) {
+                    System.out.println("\n[AUTOPLAY] Buscando próxima recomendação baseada na tag: " + tagsDaUltima + "...");
+                    boolean achouRecomendacao = false;
+
+                    // Procura no catálogo UMA música com a mesma tag que ainda não tocou
+                    for (Midia m : catalogoGlobal) {
+                        if (m instanceof Faixa f && !fila.contains(m)) {
+                            boolean temMesmaTag = false;
+                            for (String tag : f.getTags()) {
+                                if (tagsDaUltima.contains(tag)) {
+                                    temMesmaTag = true;
+                                    break;
+                                }
+                            }
+
+                            if (temMesmaTag) {
+                                // Adiciona na fila e deixa o While tocar ela na próxima rodada!
+                                fila.add(f);
+                                musicasRecomendadasTocadas++;
+                                achouRecomendacao = true;
+                                System.out.println("-> Música recomendada encontrada: " + f.getTitulo());
+                                break; // Achou uma música, para de procurar no catálogo
+                            }
                         }
                     }
 
-                    tocarItem(usuario, item);
+                    if (!achouRecomendacao) {
+                        System.out.println("-> Nenhuma música nova com essa mesma tag encontrada. Fim da rádio.");
+                        break;
+                    }
+                } else {
+                    System.out.println("-> A mídia atual não possui tags para basear a recomendação.");
+                    break;
                 }
 
-            } catch (PlaylistVaziaException | CatalogoInsuficienteException e) {
-                System.out.println("[AVISO] Nao foi possivel carregar mais recomendacoes: " + e.getMessage());
+            } else if (index == fila.size() && musicasRecomendadasTocadas >= limiteAutoplay) {
+                System.out.println("\n-> Limite de recomendações atingido (3 músicas). Fim da reprodução automática.");
             }
         }
-
-        this.emReproducao = false;
-        System.out.println("\n[STOP] Reproducao finalizada.");
-    }
-
-    private void tocarItem(Usuario usuario, Reproduzivel item) {
-        if (item instanceof Midia m) {
-            System.out.println(">> Tocando agora: " + m.getNome());
-        } else {
-            System.out.println(">> Tocando agora: Item Reproduzivel");
-        }
-        usuario.adicionarAoHistorico(item);
-        
-        // Simula o tempo da musica rodando no terminal
-        pausa(2000); 
     }
 
     public void parar() {
         this.emReproducao = false;
-        System.out.println("[PAUSA] Reproducao interrompida pelo usuario.");
-    }
-
-    private void pausa(int ms) {
-        try {
-            Thread.sleep(ms);
-        } catch (InterruptedException ignored) {}
+        System.out.println("\n[Player] Reprodução interrompida.");
     }
 }
