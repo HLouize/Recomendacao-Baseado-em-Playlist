@@ -1,5 +1,6 @@
 package planos;
 
+import excecoes.LimiteUsuariosPlanoException;
 import principais.Usuario;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +15,18 @@ public class PlanoFamily extends Plano {
     }
 
     public boolean adicionarUsuario(Usuario u) {
-        if (dependentes.size() < LIMITE) {
-            dependentes.add(u);
-            return true;
+       // lança a exceção customizada se o limite for atingido
+        if (dependentes.size() >= LIMITE) {
+            throw new LimiteUsuariosPlanoException("Erro: Limite máximo de " + LIMITE + " usuários atingido no Plano Family.");
         }
-        System.err.println("Erro: Limite máximo de " + LIMITE + " usuários atingido no Plano Family.");
-        return false;
+
+        dependentes.add(u);
+        return true;
     }
 
-    public void removerUsuario(Usuario u) { dependentes.remove(u); }
+    public void removerUsuario(Usuario u) {
+        dependentes.remove(u);
+    }
 
     public void listarUsuarios() {
         System.out.println("--- Membros do Plano Family ---");
@@ -32,5 +36,7 @@ public class PlanoFamily extends Plano {
     }
 
     @Override
-    public boolean exibirPropaganda() { return false; }
+    public boolean exibirPropaganda() {
+        return false;
+    }
 }
