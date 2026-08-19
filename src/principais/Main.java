@@ -37,10 +37,10 @@ public class Main {
         int opcaoPlano = Integer.parseInt(scanner.nextLine());
 
         Plano plano = switch (opcaoPlano) {
-            case 2 -> new PlanoIndividual();
-            case 3 -> new PlanoEstudante();
-            case 4 -> new PlanoFamily();
-            default -> new Gratuito();
+            case 2 -> new PlanoIndividual(19.90);
+            case 3 -> new PlanoEstudante(9.90);
+            case 4 -> new PlanoFamily(34.90);
+            default -> new Gratuito(0.0);
         };
 
         Usuario usuario = new Usuario(nome, plano);
@@ -69,20 +69,25 @@ public class Main {
                     for (int i = 0; i < catalogoGlobal.size(); i++) {
                         Midia m = catalogoGlobal.get(i);
                         if (m instanceof Faixa f) {
-                            System.out.printf("%d. %s - %s [%s]\n", (i + 1), f.getTitulo(), f.getArtista(), f.getTags());
+                            System.out.printf("%d. %s - %s [%s]\n", (i + 1), f.getNome(), f.getArtista(), f.getTags());
                         }
                     }
                 }
                 case 2 -> {
                     System.out.println("\n--- ADICIONAR A PLAYLIST ---");
                     for (int i = 0; i < catalogoGlobal.size(); i++) {
-                        System.out.printf("%d. %s - %s\n", (i + 1), catalogoGlobal.get(i).getTitulo(), ((Faixa) catalogoGlobal.get(i)).getArtista());
+                        Midia m = catalogoGlobal.get(i);
+                        if (m instanceof Faixa f) {
+                            System.out.printf("%d. %s - %s\n", (i + 1), f.getNome(), f.getArtista());
+                        } else {
+                            System.out.printf("%d. %s\n", (i + 1), m.getNome());
+                        }
                     }
                     System.out.print("Digite o numero da musica: ");
                     int num = Integer.parseInt(scanner.nextLine());
                     if (num > 0 && num <= catalogoGlobal.size()) {
                         playlistUsuario.adicionarItem(catalogoGlobal.get(num - 1));
-                        System.out.println("'" + catalogoGlobal.get(num - 1).getTitulo() + "' adicionada com sucesso!");
+                        System.out.println("'" + catalogoGlobal.get(num - 1).getNome() + "' adicionada com sucesso!");
                     } else {
                         System.out.println("[ERRO] Opcao invalida!");
                     }
@@ -92,7 +97,11 @@ public class Main {
                     if (playlistUsuario.getItens().isEmpty()) {
                         System.out.println("(Sua playlist esta vazia)");
                     } else {
-                        playlistUsuario.getItens().forEach(item -> System.out.println("- " + item.getTitulo()));
+                        playlistUsuario.getItens().forEach(item -> {
+                            if (item instanceof Midia m) {
+                                System.out.println("- " + m.getNome());
+                            }
+                        });
                     }
                 }
                 case 4 -> player.iniciarReproducao(usuario, playlistUsuario, catalogoGlobal);
