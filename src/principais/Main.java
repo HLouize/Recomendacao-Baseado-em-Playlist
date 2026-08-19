@@ -2,6 +2,10 @@ package principais;
 
 import classesDeMidia.Faixa;
 import classesDeMidia.Midia;
+import classesDeMidia.Reproduzivel;
+import excecoes.CatalogoInsuficienteException;
+import excecoes.PlaylistVaziaException;
+import filtros.AntiRepetitionFilter;
 import organizacao.Album;
 import organizacao.Playlist;
 import planos.Gratuito;
@@ -9,6 +13,7 @@ import planos.Plano;
 import planos.PlanoEstudante;
 import planos.PlanoFamily;
 import planos.PlanoIndividual;
+import recomendacao.PlaylistSimilarityStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +26,7 @@ public class Main {
         List<Midia> catalogoGlobal = carregarCatalogoDiversificado();
         Player player = new Player();
 
-        System.out.println("=========================================");
+        
         System.out.println("    SISTEMA DE MUSICA INTERATIVO         ");
         System.out.println("=========================================");
 
@@ -36,17 +41,17 @@ public class Main {
         System.out.print("Opcao: ");
         int opcaoPlano = Integer.parseInt(scanner.nextLine());
 
-        Plano plano = switch (opcaoPlano) {
+        Plano planoEscolhido = switch (opcaoPlano) {
             case 2 -> new PlanoIndividual(19.90);
             case 3 -> new PlanoEstudante(9.90);
             case 4 -> new PlanoFamily(34.90);
             default -> new Gratuito(0.0);
         };
 
-        Usuario usuario = new Usuario(nome, plano);
-        System.out.println("Usuario " + usuario.getNome() + " cadastrado com sucesso!");
+        Usuario usuario = new Usuario(nome, planoEscolhido);
+        System.out.println("\nConta criada com sucesso para: " + usuario.getNome());
 
-        System.out.print("\nDigite o nome para a sua Playlist: ");
+        System.out.print("Digite o nome para a sua Playlist: ");
         String nomePlaylist = scanner.nextLine();
         Playlist playlistUsuario = new Playlist(nomePlaylist);
 
@@ -54,10 +59,11 @@ public class Main {
         while (rodando) {
             System.out.println("\n=== MENU PRINCIPAL ===");
             System.out.println("1. Ver catalogo de musicas");
-            System.out.println("2. Adicionar musica do catalogo a minha playlist");
+            System.out.println("2. Adicionar musica a minha playlist");
             System.out.println("3. Ver minha playlist");
-            System.out.println("4. Dar Play na playlist");
+            System.out.println("4. Dar Play na playlist (e iniciar recomendacao)");
             System.out.println("5. Parar musica");
+            System.out.println("6. GERAR NOVA PLAYLIST RECOMENDADA");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opcao: ");
 
@@ -69,7 +75,7 @@ public class Main {
                     for (int i = 0; i < catalogoGlobal.size(); i++) {
                         Midia m = catalogoGlobal.get(i);
                         if (m instanceof Faixa f) {
-                            System.out.printf("%d. %s - %s [%s]\n", (i + 1), f.getNome(), f.getArtista(), f.getTags());
+                            System.out.printf("%d. %s - %s [Tag: %s]\n", (i + 1), f.getNome(), f.getArtista(), f.getTags());
                         }
                     }
                 }
@@ -87,7 +93,8 @@ public class Main {
                     int num = Integer.parseInt(scanner.nextLine());
                     if (num > 0 && num <= catalogoGlobal.size()) {
                         playlistUsuario.adicionarItem(catalogoGlobal.get(num - 1));
-                        System.out.println("'" + catalogoGlobal.get(num - 1).getNome() + "' adicionada com sucesso!");
+                        Midia m = catalogoGlobal.get(num - 1);
+                        System.out.println("Musica '" + m.getNome() + "' adicionada com sucesso!");
                     } else {
                         System.out.println("[ERRO] Opcao invalida!");
                     }
@@ -97,15 +104,44 @@ public class Main {
                     if (playlistUsuario.getItens().isEmpty()) {
                         System.out.println("(Sua playlist esta vazia)");
                     } else {
-                        playlistUsuario.getItens().forEach(item -> {
+                        for (Reproduzivel item : playlistUsuario.getItens()) {
                             if (item instanceof Midia m) {
                                 System.out.println("- " + m.getNome());
                             }
-                        });
+                        }
                     }
                 }
                 case 4 -> player.iniciarReproducao(usuario, playlistUsuario, catalogoGlobal);
                 case 5 -> player.parar();
+                case 6 -> {
+                    if (playlistUsuario.getItens().isEmpty()) {
+                        System.out.println("[AVISO] Sua playlist esta vazia! Adicione musicas primeiro para basearmos a recomendacao.");
+                    } else {
+                        System.out.println("\n--- GERANDO PLAYLIST RECOMENDADA ---");
+                        try {
+                            RecommendationEngine engine = new RecommendationEngine(new PlaylistSimilarityStrategy());
+                            engine.adicionarFiltro(new AntiRepetitionFilter());
+
+                            Playlist novaPlaylistRecomendada = engine.gerarPlaylistRecomendada(
+                                    "Mix Recomendado para " + usuario.getNome(),
+                                    playlistUsuario,
+                                    usuario,
+                                    catalogoGlobal,
+                                    3 // Puxando 3 musicas recomendadas
+                            );
+
+                            System.out.println("Playlist '" + novaPlaylistRecomendada.getNome() + "' criada com sucesso!");
+                            System.out.println("Musicas adicionadas baseadas no seu gosto:");
+                            for (Reproduzivel item : novaPlaylistRecomendada.getItens()) {
+                                if (item instanceof Midia m) {
+                                    System.out.println("- " + m.getNome());
+                                }
+                            }
+                        } catch (PlaylistVaziaException | CatalogoInsuficienteException e) {
+                            System.out.println("[ERRO] Nao foi possivel gerar a playlist: " + e.getMessage());
+                        }
+                    }
+                }
                 case 0 -> {
                     rodando = false;
                     System.out.println("Encerrando a aplicacao...");
@@ -120,77 +156,46 @@ public class Main {
     private static List<Midia> carregarCatalogoDiversificado() {
         List<Midia> catalogo = new ArrayList<>();
 
-        Album albumSoad = new Album("Toxicity", "System of a Down");
+        Album albumRock = new Album("Toxicity", "System of a Down");
         Album albumScorpions = new Album("Crazy World", "Scorpions");
-        Album albumQueen = new Album("A Night at the Opera", "Queen");
-        Album album1D = new Album("Midnight Memories", "One Direction");
+        Album albumPop = new Album("Midnight Memories", "One Direction");
+        Album albumSamba = new Album("Deixa a Vida Me Levar", "Zeca Pagodinho");
 
-        Album albumCaetano = new Album("Transa", "Caetano Veloso");
-        Album albumZeca = new Album("Deixa a Vida Me Levar", "Zeca Pagodinho");
-        Album albumTchaikovsky = new Album("1812 Overture", "Pyotr Ilyich Tchaikovsky");
-        Album albumShostakovich = new Album("Symphony No. 5", "Dmitri Shostakovich");
-
-        Faixa r1 = new Faixa("Chop Suey!", 210, "System of a Down", albumSoad);
+        // Musicas de Rock
+        Faixa r1 = new Faixa("Chop Suey!", 210, "System of a Down", albumRock);
         r1.adicionarTag("Rock");
-        r1.adicionarTag("Metal");
 
-        Faixa r2 = new Faixa("Toxicity", 219, "System of a Down", albumSoad);
+        Faixa r2 = new Faixa("Wind of Change", 312, "Scorpions", albumScorpions);
         r2.adicionarTag("Rock");
-        r2.adicionarTag("Metal");
 
-        Faixa r3 = new Faixa("Wind of Change", 312, "Scorpions", albumScorpions);
+        Faixa r3 = new Faixa("Rock You Like a Hurricane", 255, "Scorpions", albumScorpions);
         r3.adicionarTag("Rock");
-        r3.adicionarTag("Classic Rock");
 
-        Faixa r4 = new Faixa("Rock You Like a Hurricane", 255, "Scorpions", albumScorpions);
+        Faixa r4 = new Faixa("Toxicity", 219, "System of a Down", albumRock);
         r4.adicionarTag("Rock");
-        r4.adicionarTag("Hard Rock");
 
-        Faixa r5 = new Faixa("Bohemian Rhapsody", 354, "Queen", albumQueen);
-        r5.adicionarTag("Rock");
-
-        Faixa r6 = new Faixa("Don't Stop Me Now", 209, "Queen", albumQueen);
-        r6.adicionarTag("Rock");
-
-        Faixa p1 = new Faixa("Story of My Life", 245, "One Direction", album1D);
+        // Musicas Pop
+        Faixa p1 = new Faixa("Story of My Life", 245, "One Direction", albumPop);
         p1.adicionarTag("Pop");
-        p1.adicionarTag("Pop Rock");
 
-        Faixa p2 = new Faixa("What Makes You Beautiful", 200, "One Direction", album1D);
+        Faixa p2 = new Faixa("What Makes You Beautiful", 200, "One Direction", albumPop);
         p2.adicionarTag("Pop");
 
-        Faixa m1 = new Faixa("You Don't Know Me", 230, "Caetano Veloso", albumCaetano);
-        m1.adicionarTag("MPB");
-
-        Faixa m2 = new Faixa("Sampa", 185, "Caetano Veloso", albumCaetano);
-        m2.adicionarTag("MPB");
-
-        Faixa s1 = new Faixa("Deixa a Vida Me Levar", 270, "Zeca Pagodinho", albumZeca);
+        // Musicas Samba
+        Faixa s1 = new Faixa("Deixa a Vida Me Levar", 270, "Zeca Pagodinho", albumSamba);
         s1.adicionarTag("Samba");
 
-        Faixa s2 = new Faixa("OGUM", 290, "Zeca Pagodinho", albumZeca);
+        Faixa s2 = new Faixa("OGUM", 290, "Zeca Pagodinho", albumSamba);
         s2.adicionarTag("Samba");
-
-        Faixa c1 = new Faixa("1812 Overture, Op. 49", 900, "Pyotr Ilyich Tchaikovsky", albumTchaikovsky);
-        c1.adicionarTag("Classica");
-
-        Faixa c2 = new Faixa("Waltz No. 2", 220, "Dmitri Shostakovich", albumShostakovich);
-        c2.adicionarTag("Classica");
 
         catalogo.add(r1);
         catalogo.add(r2);
         catalogo.add(r3);
         catalogo.add(r4);
-        catalogo.add(r5);
-        catalogo.add(r6);
         catalogo.add(p1);
         catalogo.add(p2);
-        catalogo.add(m1);
-        catalogo.add(m2);
         catalogo.add(s1);
         catalogo.add(s2);
-        catalogo.add(c1);
-        catalogo.add(c2);
 
         return catalogo;
     }
