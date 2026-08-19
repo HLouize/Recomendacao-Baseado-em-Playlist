@@ -27,4 +27,14 @@ public class Audiobook extends Midia implements Reproduzivel {
     public void pause() { System.out.println("Audiobook pausado: " + getTitulo()); }
     @Override
     public void stop() { System.out.println("Audiobook parado: " + getTitulo()); }
+
+    @Override
+    public java.util.List<String> getTags() {
+        java.util.List<String> tags = new java.util.ArrayList<>();
+        // Adiciona a categoria do Audiobook como uma tag de recomendação
+        if (this.categoria != null && !this.categoria.isEmpty()) {
+            tags.add(this.categoria);
+        }
+        return tags;
+    }
 }

@@ -1,14 +1,14 @@
-package sistemaDeStreaming.recomendacao;
+package recomendacao;
 
 import java.util.ArrayList;
 import java.util.List;
-import sistemaDeStreaming.classesDeMidia.Faixa;
-import sistemaDeStreaming.classesDeMidia.Episodio;
-import sistemaDeStreaming.classesDeMidia.Midia;
-import sistemaDeStreaming.classesDeMidia.Reproduzivel;
-import sistemaDeStreaming.organizacao.Playlist;
-import sistemaDeStreaming.excecoes.PlaylistVaziaException;
-import sistemaDeStreaming.excecoes.CatalogoInsuficienteException;
+import classesDeMidia.Faixa;
+import classesDeMidia.Episodio;
+import classesDeMidia.Midia;
+import classesDeMidia.Reproduzivel;
+import organizacao.Playlist;
+import excecoes.PlaylistVaziaException;
+import excecoes.CatalogoInsuficienteException;
 
 public class PlaylistAutoCompleteStrategy implements RecommendationStrategy {
 

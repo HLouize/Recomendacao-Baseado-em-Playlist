@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.Objects;
 
 import classesDeMidia.Midia;
-import classesDeMidia.Playlist;
+import organizacao.Playlist;
 import classesDeMidia.Reproduzivel;
 import filtros.RecommendationsFilter;
-import estrategias.RecommendationStrategy;
-import organizacao.Usuario;
+import recomendacao.RecommendationStrategy;
 import excecoes.PlaylistVaziaException;
 import excecoes.CatalogoInsuficienteException;
 
@@ -45,7 +44,7 @@ public class RecommendationEngine {
     public Playlist gerarPlaylistRecomendada(String nomeNovaPlaylist, Playlist playlistBase, Usuario usuario, List<Midia> catalogoGlobal, int limite) {
 
         // regra da Playlist Vazia
-        if (playlistBase == null || playlistBase.getMidias().isEmpty()) {
+        if (playlistBase == null || playlistBase.getItens().isEmpty()) {
             throw new PlaylistVaziaException("A playlist base está vazia. Não é possível gerar recomendações.");
         }
 
@@ -71,7 +70,7 @@ public class RecommendationEngine {
         Playlist playlistResultante = new Playlist(nomeNovaPlaylist);
         for (Reproduzivel item : recomendacoes) {
             if (item != null) {
-                playlistResultante.adicionarMidia(item);
+                playlistResultante.adicionarItem(item);
             }
         }
 
