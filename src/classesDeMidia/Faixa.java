@@ -46,4 +46,6 @@ public class Faixa extends Midia implements Reproduzivel {
     public void pause() { System.out.println("Faixa pausada: " + getTitulo()); }
     @Override
     public void stop() { System.out.println("Faixa parada: " + getTitulo()); }
+
+
 }

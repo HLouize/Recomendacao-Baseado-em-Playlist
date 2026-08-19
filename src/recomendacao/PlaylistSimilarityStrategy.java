@@ -1,11 +1,11 @@
-package sistemaDeStreaming.recomendacao;
+package recomendacao;
 
 import java.util.*;
-import sistemaDeStreaming.classesDeMidia.Midia;
-import sistemaDeStreaming.classesDeMidia.Reproduzivel;
-import sistemaDeStreaming.organizacao.Playlist;
-import sistemaDeStreaming.excecoes.PlaylistVaziaException;
-import sistemaDeStreaming.excecoes.CatalogoInsuficienteException;
+import classesDeMidia.Midia;
+import classesDeMidia.Reproduzivel;
+import organizacao.Playlist;
+import excecoes.PlaylistVaziaException;
+import excecoes.CatalogoInsuficienteException;
 
 public class PlaylistSimilarityStrategy implements RecommendationStrategy {
 
@@ -14,14 +14,16 @@ public class PlaylistSimilarityStrategy implements RecommendationStrategy {
             throws PlaylistVaziaException, CatalogoInsuficienteException {
 
         if (playlistBase == null || playlistBase.getItens().isEmpty()) {
-            throw new PlaylistVaziaException("A playlist base está vazia. Não é possível calcular afinidade.");
+            throw new PlaylistVaziaException("A playlist base está vazia.");
         }
 
         Map<String, Integer> frequenciaTags = new HashMap<>();
         for (Reproduzivel item : playlistBase.getItens()) {
-            for (String tag : item.getTags()) {
-                String tagNormalizada = tag.toLowerCase().trim();
-                frequenciaTags.put(tagNormalizada, frequenciaTags.getOrDefault(tagNormalizada, 0) + 1);
+            if (item.getTags() != null) {
+                for (String tag : item.getTags()) {
+                    String tagNormalizada = tag.toLowerCase().trim();
+                    frequenciaTags.put(tagNormalizada, frequenciaTags.getOrDefault(tagNormalizada, 0) + 1);
+                }
             }
         }
 
@@ -33,23 +35,36 @@ public class PlaylistSimilarityStrategy implements RecommendationStrategy {
                 continue;
             }
 
-            int score = 0;
-            for (String tag : midia.getTags()) {
-                score += frequenciaTags.getOrDefault(tag.toLowerCase().trim(), 0);
-            }
+            if (midia instanceof Reproduzivel) {
+                Reproduzivel candidato = (Reproduzivel) midia;
+                int score = 0;
 
-            if (score > 0) {
-                candidatos.add(midia);
-                pontuacao.put(midia, score);
+                if (candidato.getTags() != null) {
+                    for (String tag : candidato.getTags()) {
+                        String tagNorm = tag.toLowerCase().trim();
+                        if (frequenciaTags.containsKey(tagNorm)) {
+                            score += frequenciaTags.get(tagNorm);
+                        }
+                    }
+                }
+
+                if (score > 0) {
+                    pontuacao.put(candidato, score);
+                    candidatos.add(candidato);
+                }
             }
         }
 
         if (candidatos.isEmpty()) {
-            throw new CatalogoInsuficienteException("Nenhuma mídia compatível foi encontrada no catálogo.");
+            throw new CatalogoInsuficienteException("Nenhuma mídia com perfil semelhante encontrada.");
         }
 
-        candidatos.sort((m1, m2) -> Integer.compare(pontuacao.get(m2), pontuacao.get(m1)));
+        candidatos.sort((c1, c2) -> Integer.compare(pontuacao.get(c2), pontuacao.get(c1)));
 
-        return candidatos.subList(0, Math.min(limite, candidatos.size()));
+        if (candidatos.size() > limite) {
+            return candidatos.subList(0, limite);
+        }
+
+        return candidatos;
     }
 }

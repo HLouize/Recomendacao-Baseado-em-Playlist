@@ -1,11 +1,11 @@
-package sistemaDeStreaming.recomendacao;
+package recomendacao;
 
 import java.util.List;
-import sistemaDeStreaming.classesDeMidia.Midia;
-import sistemaDeStreaming.classesDeMidia.Reproduzivel;
-import sistemaDeStreaming.organizacao.Playlist;
-import sistemaDeStreaming.excecoes.PlaylistVaziaException;
-import sistemaDeStreaming.excecoes.CatalogoInsuficienteException;
+import classesDeMidia.Midia;
+import classesDeMidia.Reproduzivel;
+import organizacao.Playlist;
+import excecoes.PlaylistVaziaException;
+import excecoes.CatalogoInsuficienteException;
 
 public interface RecommendationStrategy {
 
