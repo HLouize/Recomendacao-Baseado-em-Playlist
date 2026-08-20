@@ -14,7 +14,7 @@ public class Player {
         List<Reproduzivel> fila = new ArrayList<>(playlist.getItens());
         int index = 0;
 
-        // Limite de músicas automáticas (Autoplay vai recomendar umas 3 vezes e parar, como você pediu)
+        // Limite de músicas automáticas
         int limiteAutoplay = 3;
         int musicasRecomendadasTocadas = 0;
 
@@ -57,7 +57,7 @@ public class Player {
                             }
 
                             if (temMesmaTag) {
-                                // Adiciona na fila e deixa o While tocar ela na próxima rodada!
+                                // Adiciona na fila e deixa o While tocar ela na próxima rodada
                                 fila.add(f);
                                 musicasRecomendadasTocadas++;
                                 achouRecomendacao = true;

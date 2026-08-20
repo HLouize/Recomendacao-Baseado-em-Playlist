@@ -14,7 +14,7 @@ public class Usuario {
 
     private List<Reproduzivel> historico;
 
-    // Construtor original (mantido para não afetar outras partes do projeto)
+
     public Usuario(String nome, String email, Plano plano) {
         this.nome = nome;
         this.email = email;

@@ -14,10 +14,8 @@ import excecoes.CatalogoInsuficienteException;
 
 /**
  * Gerencia e executa o fluxo completo do motor de recomendação.
- * <p>
  * Aplica a estratégia configurada para gerar recomendações iniciais e
  * estende o resultado encadeando uma sequência de filtros cadastrados.
- * </p>
  */
 public class RecommendationEngine {
 
@@ -43,7 +41,7 @@ public class RecommendationEngine {
 
     public Playlist gerarPlaylistRecomendada(String nomeNovaPlaylist, Playlist playlistBase, Usuario usuario, List<Midia> catalogoGlobal, int limite) {
 
-        // regra da Playlist Vazia
+        // regra da Playlist vazia
         if (playlistBase == null || playlistBase.getItens().isEmpty()) {
             throw new PlaylistVaziaException("A playlist base está vazia. Não é possível gerar recomendações.");
         }
@@ -54,7 +52,7 @@ public class RecommendationEngine {
             recomendacoes = new ArrayList<>();
         }
 
-        // regra do Catálogo Insuficiente
+        // regra do catálogo insuficiente
         if (recomendacoes.isEmpty() || recomendacoes.size() < limite) {
             throw new CatalogoInsuficienteException("O catálogo não possui itens compatíveis suficientes para preencher a recomendação.");
         }

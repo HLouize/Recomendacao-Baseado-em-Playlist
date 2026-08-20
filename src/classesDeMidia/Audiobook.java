@@ -15,7 +15,7 @@ public class Audiobook extends Midia implements Reproduzivel {
 
     public String getAutor() { return autor; }
 
-    // Recupera a categoria ou gênero do audiobook. @return A categoria em formato String (ex: ficção, educacional).
+    // Recupera a categoria ou gênero do audiobook.
 
     public String getCategoria() { return categoria; }
 

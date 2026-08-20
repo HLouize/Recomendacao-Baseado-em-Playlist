@@ -110,11 +110,11 @@ public class Main {
                             String tipo = m.getClass().getSimpleName().toLowerCase();
 
                             if (m instanceof Faixa f) {
-                                System.out.printf("%d. [🎵 MÚSICA] %s - %s\n", (i + 1), f.getTitulo(), f.getArtista());
+                                System.out.printf("%d. [MÚSICA] %s - %s\n", (i + 1), f.getTitulo(), f.getArtista());
                             } else if (tipo.contains("audiobook") || tipo.contains("capitulo")) {
-                                System.out.printf("%d. [📚 AUDIOBOOK] %s\n", (i + 1), m.getTitulo());
+                                System.out.printf("%d. [AUDIOBOOK] %s\n", (i + 1), m.getTitulo());
                             } else if (tipo.contains("podcast") || tipo.contains("episodio")) {
-                                System.out.printf("%d. [🎙️ PODCAST] %s\n", (i + 1), m.getTitulo());
+                                System.out.printf("%d. [PODCAST] %s\n", (i + 1), m.getTitulo());
                             } else {
                                 System.out.printf("%d. [%s] %s\n", (i + 1), tipo.toUpperCase(), m.getTitulo());
                             }

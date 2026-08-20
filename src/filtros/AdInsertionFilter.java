@@ -9,7 +9,7 @@ import principais.Usuario;
 /**
  * Filtro de pós-processamento responsável pela integração com o plano do usuário.
  * Caso o usuário pertença ao plano Gratuito (cujo método {@code exibirPropaganda()} retorna {@code true}),
- * o filtro insere periodicamente uma mídia do tipo propaganda/vinheta a cada N itens recomendados.
+ * o filtro insere periodicamente uma mídia do tipo propaganda a cada N itens recomendados.
  * Se o usuário for de plano pago, a lista de recomendações permanece inalterada.
  */
 public class AdInsertionFilter implements RecommendationsFilter {
